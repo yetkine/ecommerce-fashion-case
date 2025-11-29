@@ -1,0 +1,22 @@
+# root
+node_modules/
+.env
+.env.local
+.env.development
+.env.production
+
+# frontend
+/frontend/.next/
+/frontend/.turbo/
+/frontend/out/
+/frontend/.env*
+
+# backend
+/backend/node_modules/
+/backend/logs/
+/backend/*.log
+/backend/.env*
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+/* Form alanlarını daha okunaklı yap */
+input,
+select,
+textarea {
+  color: #0f172a; /* tailwind: slate-900, düz siyaha çok yakın */
+}
+
+/* Placeholder'lar biraz daha açık gri olsun */
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af; /* slate-400 */
+}
