@@ -1,4 +1,3 @@
-// frontend/app/products/[id]/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -37,12 +36,28 @@ type ProductDetailResponse = {
   reviews: Review[];
 };
 
-// renk dot’ları için küçük helper
-const FALLBACK_COLORS = ["#111827", "#9CA3AF", "#F97316", "#22C55E"];
+// Renk ismine göre dot rengi
+const COLOR_HEX: Record<string, string> = {
+  Yellow: "#facc15",
+  DarkBlue: "#0f172a",
+  Black: "#020617",
+  White: "#e5e7eb",
+  Lilac: "#c4b5fd",
+  Beige: "#f5f5dc",
+  Blue: "#1d4ed8",
+  "Light Blue": "#38bdf8",
+  Nude: "#f5e7da",
+  Brown: "#92400e",
+  Gold: "#facc15",
+};
+
+const FALLBACK_COLORS = ["#111827", "#9CA3AF", "#F97316", "#22C55E", "#ec4899"];
 
 function resolveDotColor(c: string, idx: number) {
   const trimmed = c.trim();
-  if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(trimmed)) return trimmed;
+  if (COLOR_HEX[trimmed]) return COLOR_HEX[trimmed];
+  const noSpace = trimmed.replace(/\s+/g, "");
+  if (COLOR_HEX[noSpace]) return COLOR_HEX[noSpace];
   return FALLBACK_COLORS[idx % FALLBACK_COLORS.length];
 }
 
@@ -61,6 +76,8 @@ export default function ProductDetailPage() {
   // cart & UI state
   const [justAdded, setJustAdded] = useState(false);
   const [quantity, setQuantity] = useState(1);
+
+  // ürün görseli / renk index
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   // review form state
@@ -106,6 +123,8 @@ export default function ProductDetailPage() {
       name: product.name,
       price: product.price,
       quantity: safeQty,
+      color: currentColorName,
+      image: currentImage ?? undefined,
     });
 
     setJustAdded(true);
@@ -199,10 +218,8 @@ export default function ProductDetailPage() {
 
   const images = product.images ?? [];
   const colors = product.colors ?? [];
-  const currentImage =
-    images[selectedIndex] ?? images[0] ?? "/placeholder-product.jpg";
-  const currentColorName =
-    colors[selectedIndex] || (colors[0] ?? undefined);
+  const currentImage = images[selectedIndex] ?? images[0] ?? null;
+  const currentColorName = colors[selectedIndex] || colors[0];
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -220,67 +237,54 @@ export default function ProductDetailPage() {
           <div className="flex flex-col gap-4">
             {/* Ana görsel */}
             <div className="relative w-full overflow-hidden rounded-2xl bg-slate-100 pb-[120%]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={currentImage}
-                alt={product.name}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-              {images.length > 0 && (
+              {currentImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={currentImage}
+                  alt={product.name}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-4 rounded-2xl border border-dashed border-slate-300" />
+              )}
+              {currentColorName && (
                 <span className="absolute bottom-3 right-4 text-xs text-slate-500">
-                  Image {selectedIndex + 1} / {images.length}
+                  {currentColorName}
                 </span>
               )}
             </div>
 
             {/* Thumbnail'ler */}
-            <div className="grid grid-cols-4 gap-2">
-              {(images.length ? images : [currentImage]).slice(0, 4).map((img, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setSelectedIndex(idx)}
-                  className={`relative h-16 overflow-hidden rounded-xl border transition ${
-                    selectedIndex === idx
-                      ? "border-slate-900 ring-1 ring-slate-900"
-                      : "border-slate-200 hover:border-slate-400"
-                  }`}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={img}
-                    alt={`${product.name} ${idx + 1}`}
-                    className="h-full w-full object-cover"
-                  />
-                  <span className="absolute bottom-1 right-2 text-[10px] text-slate-500">
-                    {idx + 1}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            {/* Renk dot'ları */}
-            {colors.length > 0 && (
-              <div className="mt-1 flex items-center gap-2">
-                {colors.map((c, idx) => (
+            {images.length > 0 ? (
+              <div className="grid grid-cols-4 gap-2">
+                {images.map((img, idx) => (
                   <button
-                    key={`${c}-${idx}`}
+                    key={img + idx}
                     type="button"
                     onClick={() => setSelectedIndex(idx)}
-                    className={`h-5 w-5 rounded-full border border-slate-300 outline-none ring-offset-1 ${
-                      idx === selectedIndex
-                        ? "ring-2 ring-slate-900"
-                        : "ring-0"
+                    className={`relative h-16 overflow-hidden rounded-xl border transition ${
+                      selectedIndex === idx
+                        ? "border-slate-900 ring-1 ring-slate-900"
+                        : "border-slate-200 hover:border-slate-400"
                     }`}
-                    style={{ backgroundColor: resolveDotColor(c, idx) }}
-                    aria-label={c}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={img}
+                      alt={`${product.name} ${idx + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 gap-2">
+                {[0, 1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-16 rounded-xl border border-slate-200 bg-slate-100"
                   />
                 ))}
-                {currentColorName && (
-                  <span className="text-[11px] text-slate-500">
-                    {currentColorName}
-                  </span>
-                )}
               </div>
             )}
 
@@ -316,8 +320,40 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
+            {/* Renk seçici */}
+            {colors.length > 0 && (
+              <div className="mt-1 flex flex-col gap-2">
+                <span className="text-xs font-medium text-slate-600">
+                  Color
+                </span>
+                <div className="flex items-center gap-2">
+                  {colors.map((c, idx) => (
+                    <button
+                      key={`${c}-${idx}`}
+                      type="button"
+                      onClick={() => setSelectedIndex(idx)}
+                      className={`h-6 w-6 rounded-full border border-slate-300 outline-none ring-offset-1 ${
+                        idx === selectedIndex
+                          ? "ring-2 ring-slate-900"
+                          : "ring-0"
+                      }`}
+                      style={{
+                        backgroundColor: resolveDotColor(c, idx),
+                      }}
+                      aria-label={c}
+                    />
+                  ))}
+                  {currentColorName && (
+                    <span className="text-[11px] text-slate-500">
+                      {currentColorName}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Quantity + Add to cart */}
-            <div className="mt-2 flex flex-col gap-3">
+            <div className="mt-3 flex flex-col gap-3">
               <div className="flex items-center gap-3">
                 <span className="text-xs font-medium text-slate-600">
                   Quantity
@@ -511,9 +547,7 @@ export default function ProductDetailPage() {
                       {rev.userName}
                     </span>
                     <span className="text-[11px] text-slate-400">
-                      {new Date(
-                        rev.createdAt
-                      ).toLocaleDateString()}
+                      {new Date(rev.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                   <div className="mb-1 text-xs text-amber-500">

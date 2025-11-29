@@ -3,6 +3,8 @@ const jwt = require("jsonwebtoken");
 const Product = require("../models/Product");
 const Category = require("../models/Category");
 const Review = require("../models/Review");
+const Order = require("../models/Order");
+
 
 const router = express.Router();
 
@@ -148,6 +150,67 @@ router.get("/", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+// GET /api/products/featured
+// Homepage featured bölümleri için:
+// - mostOrdered: siparişlerde en çok geçen ürünler
+// - topRated: ratingAvg'e göre en yüksek puanlı ürünler
+router.get("/featured", async (req, res) => {
+  try {
+    const baseFilter = {
+      isActive: { $ne: false },
+      stock: { $gt: 0 },
+    };
+
+    // TOP RATED
+    const topRated = await Product.find(baseFilter)
+      .sort({ ratingAvg: -1, ratingCount: -1 })
+      .limit(8)
+      .populate("categoryId", "name slug")
+      .lean();
+
+    // MOST ORDERED (Order collection üzerinden aggregate)
+    const agg = await Order.aggregate([
+      { $unwind: "$items" },
+      {
+        $group: {
+          _id: "$items.productId",
+          totalQty: { $sum: "$items.quantity" },
+        },
+      },
+      { $sort: { totalQty: -1 } },
+      { $limit: 8 },
+    ]);
+
+    let mostOrdered = [];
+    if (agg.length) {
+      const ids = agg.map((a) => a._id);
+      const products = await Product.find({
+        _id: { $in: ids },
+        ...baseFilter,
+      })
+        .populate("categoryId", "name slug")
+        .lean();
+
+      const map = new Map(
+        products.map((p) => [p._id.toString(), p])
+      );
+
+      mostOrdered = agg
+        .map((a) => map.get(a._id.toString()))
+        .filter(Boolean);
+    }
+
+    res.json({
+      mostOrdered,
+      topRated,
+    });
+  } catch (err) {
+    console.error("GET /api/products/featured error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 
 // GET /api/products/:id  -> ürün detayı
 router.get("/:id", async (req, res) => {

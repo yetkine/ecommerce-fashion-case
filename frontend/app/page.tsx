@@ -51,7 +51,15 @@ const COLOR_HEX: Record<string, string> = {
 
 export default function HomePage() {
   const [categories, setCategories] = useState<Category[]>([]);
+
+  // ana ürün listesi (filtreli)
   const [products, setProducts] = useState<Product[]>([]);
+
+  // featured listeler
+  const [featuredPopular, setFeaturedPopular] = useState<Product[]>([]);
+  const [featuredTopRated, setFeaturedTopRated] = useState<Product[]>([]);
+
+  // filtre state'leri
   const [gender, setGender] = useState<string>("");
   const [categorySlug, setCategorySlug] = useState<string>("");
   const [sort, setSort] = useState<string>("popularity");
@@ -64,7 +72,7 @@ export default function HomePage() {
   const [totalPages, setTotalPages] = useState<number>(1);
 
   const PAGE_SIZE = 8;
-  const { totalItems, totalPrice } = useCart(); // şimdilik sadece CartBar için
+  const { totalItems, totalPrice } = useCart(); // şimdilik sadece CartBar için, gerekirse kullanırız
 
   // kategoriler
   useEffect(() => {
@@ -81,7 +89,37 @@ export default function HomePage() {
     fetchCategories();
   }, []);
 
-  // ürünler
+  // FEATURED: Most popular & Top rated (sayfa açıldığında 1 kere)
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const [popularRes, topRatedRes] = await Promise.all([
+          fetch(
+            `${API_BASE}/api/products?sort=popularity&page=1&limit=8`
+          ),
+          fetch(
+            `${API_BASE}/api/products?sort=rating_desc&page=1&limit=8`
+          ),
+        ]);
+
+        if (popularRes.ok) {
+          const json: ProductResponse = await popularRes.json();
+          setFeaturedPopular(json.data || []);
+        }
+
+        if (topRatedRes.ok) {
+          const json: ProductResponse = await topRatedRes.json();
+          setFeaturedTopRated(json.data || []);
+        }
+      } catch (err) {
+        console.error("featured products error", err);
+      }
+    };
+
+    fetchFeatured();
+  }, []);
+
+  // ana ürün listesi (filtrelenmiş)
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
@@ -130,6 +168,47 @@ export default function HomePage() {
 
           <CartBar />
         </header>
+
+        {/* FEATURED SECTIONS */}
+        {(featuredPopular.length > 0 || featuredTopRated.length > 0) && (
+          <section className="mb-8 space-y-6">
+            {featuredPopular.length > 0 && (
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <h2 className="text-sm font-semibold text-slate-900">
+                    Most popular
+                  </h2>
+                  <span className="text-xs text-slate-500">
+                    Based on popularity / rating
+                  </span>
+                </div>
+                <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+                  {featuredPopular.slice(0, 4).map((p) => (
+                    <ProductCard key={p._id} product={p} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {featuredTopRated.length > 0 && (
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <h2 className="text-sm font-semibold text-slate-900">
+                    Top rated
+                  </h2>
+                  <span className="text-xs text-slate-500">
+                    4.5★ and above
+                  </span>
+                </div>
+                <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+                  {featuredTopRated.slice(0, 4).map((p) => (
+                    <ProductCard key={p._id} product={p} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
 
         {/* FİLTRELER */}
         <section className="mb-6 flex flex-wrap gap-3 rounded-xl bg-white p-4 shadow-sm">
@@ -263,7 +342,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ÜRÜNLER */}
+        {/* ÜRÜNLER (ANA LİSTE) */}
         <section>
           {loading ? (
             <div className="flex items-center justify-center py-12 text-slate-500">
@@ -282,6 +361,7 @@ export default function HomePage() {
           )}
         </section>
 
+        {/* PAGINATION */}
         {products.length > 0 && (
           <div className="mt-6 flex items-center justify-center gap-4">
             <button
@@ -300,7 +380,9 @@ export default function HomePage() {
             <button
               className="rounded-full border border-slate-800 bg-slate-900 px-4 py-1 text-sm text-white disabled:cursor-not-allowed disabled:bg-slate-400"
               disabled={page >= totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              onClick={() =>
+                setPage((p) => Math.min(totalPages, p + 1))
+              }
             >
               Next →
             </button>
@@ -311,7 +393,7 @@ export default function HomePage() {
   );
 }
 
-// ÜRÜN KARTI + RENK SEÇİCİ
+/* ÜRÜN KARTI + RENK SEÇİCİ (listede kullanılan) */
 function ProductCard({ product }: { product: Product }) {
   const [colorIndex, setColorIndex] = useState(0);
 
@@ -328,6 +410,7 @@ function ProductCard({ product }: { product: Product }) {
       {/* Görsel */}
       <div className="relative w-full bg-slate-100 pb-[130%]">
         {activeImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={activeImage}
             alt={product.name}

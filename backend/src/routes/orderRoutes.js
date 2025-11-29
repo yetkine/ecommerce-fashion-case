@@ -1,14 +1,19 @@
+// backend/src/routes/orderRoutes.js
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const Order = require("../models/Order");
 
 const router = express.Router();
 
-// JWT'den kullanıcı okumak için helper
+/**
+ * JWT'den user okumak için helper
+ * (Login değilse null döner, POST /api/orders için opsiyonel)
+ */
 function tryGetUserFromHeader(req) {
   const auth = req.headers.authorization || "";
   if (!auth.startsWith("Bearer ")) return null;
   const token = auth.slice(7);
+
   try {
     const payload = jwt.verify(
       token,
@@ -21,7 +26,9 @@ function tryGetUserFromHeader(req) {
   }
 }
 
-// Sıkı auth (profil / siparişlerim / iptal / admin için)
+/**
+ * Sıkı auth (profil / siparişlerim / iptal / admin için)
+ */
 function authMiddleware(req, res, next) {
   const auth = req.headers.authorization || "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
@@ -43,15 +50,21 @@ function authMiddleware(req, res, next) {
   }
 }
 
-// Sipariş kodu üretici
+/**
+ * Sipariş kodu üretici
+ */
 function generateOrderCode() {
   const now = Date.now().toString(36).toUpperCase();
   const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
   return `ORD-${now}-${rand}`;
 }
 
-// POST /api/orders
-// login zorunlu değil; varsa userId kaydediyoruz
+/**
+ * POST /api/orders
+ * Login zorunlu değil; varsa userId kaydediyoruz.
+ * Artık item içinde color + image de kaydediyoruz ki
+ * hem sipariş geçmişinde hem admin panelde renk/görsel gözüksün.
+ */
 router.post("/", async (req, res) => {
   try {
     const {
@@ -93,6 +106,9 @@ router.post("/", async (req, res) => {
         name: it.name,
         price: it.price,
         quantity: it.quantity,
+        // color & image artık cart’tan geliyorsa kaydediyoruz
+        color: it.color || null,
+        image: it.image || null,
       })),
       subtotal,
       tax,
@@ -104,7 +120,7 @@ router.post("/", async (req, res) => {
       shippingZip,
       paymentName,
       paymentLast4: last4,
-      status: "created",
+      status: "processing",
     });
 
     res.status(201).json({
@@ -119,7 +135,10 @@ router.post("/", async (req, res) => {
   }
 });
 
-// GET /api/orders/my  -> kullanıcının kendi siparişleri
+/**
+ * GET /api/orders/my
+ * Kullanıcının kendi siparişleri
+ */
 router.get("/my", authMiddleware, async (req, res) => {
   try {
     const orders = await Order.find({ userId: req.user.id })
@@ -133,7 +152,10 @@ router.get("/my", authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/orders  -> ADMIN: tüm kullanıcıların siparişleri
+/**
+ * GET /api/orders
+ * ADMIN → tüm kullanıcıların siparişleri (dashboard için)
+ */
 router.get("/", authMiddleware, async (req, res) => {
   try {
     if (!req.user.isAdmin) {
@@ -152,9 +174,11 @@ router.get("/", authMiddleware, async (req, res) => {
   }
 });
 
-// PATCH /api/orders/:id/cancel
-// -> sahibi iptal edebilir
-// -> admin HERKESİN siparişini iptal edebilir
+/**
+ * PATCH /api/orders/:id/cancel
+ * - Sahibi kendi siparişini iptal edebilir
+ * - Admin herkesin siparişini iptal edebilir
+ */
 router.patch("/:id/cancel", authMiddleware, async (req, res) => {
   try {
     const orderId = req.params.id;
@@ -167,14 +191,15 @@ router.patch("/:id/cancel", authMiddleware, async (req, res) => {
     const isOwner =
       order.userId && order.userId.toString() === req.user.id;
 
-    // ne sahibi, ne admin
+    // Ne sahibi, ne admin → yasak
     if (!isOwner && !req.user.isAdmin) {
       return res
         .status(403)
         .json({ message: "Not allowed to cancel this order" });
     }
 
-    if (!["created", "processing"].includes(order.status)) {
+     // ✅ sadece "processing" iptal edilebilir
+    if (order.status !== "processing") {
       return res
         .status(400)
         .json({ message: "This order cannot be cancelled" });

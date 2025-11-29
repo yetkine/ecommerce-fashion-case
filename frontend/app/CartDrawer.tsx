@@ -122,75 +122,64 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
             </div>
           ) : (
             <div className="space-y-3">
-              {items.map((item) => (
+              {items.map((item, index) => (
                 <div
-                  key={item.productId}
+                  key={`${item.productId}-${item.color || "default"}-${index}`}
                   className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2"
                 >
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-slate-900">
                       {item.name}
-                    </p>
-                    <p className="text-xs text-slate-500">
+                    </span>
+
+                    {item.color && (
+                      <span className="text-[11px] text-slate-500">
+                        Color: {item.color}
+                      </span>
+                    )}
+
+                    <span className="text-[11px] text-slate-500">
                       {item.price.toFixed(1)} ₺ / adet
-                    </p>
+                    </span>
                   </div>
 
-                  {/* Adet */}
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (item.quantity <= 1) {
-                          removeFromCart(item.productId);
-                        } else {
-                          updateQuantity(item.productId, item.quantity - 1);
-                        }
-                      }}
-                      className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-100"
-                    >
-                      -
-                    </button>
-                    <span className="w-8 text-center text-sm font-medium text-slate-900">
-                      {item.quantity}
-                    </span>
+                  <div className="flex items-center gap-2 text-xs">
                     <button
                       type="button"
                       onClick={() =>
-                        updateQuantity(item.productId, item.quantity + 1)
+                        updateQuantity(item.productId, item.quantity - 1, item.color)
                       }
-                      className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                      className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-300 text-xs text-slate-700 hover:bg-slate-50"
+                    >
+                      -
+                    </button>
+
+                    <span className="w-6 text-center text-xs text-slate-900">
+                      {item.quantity}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateQuantity(item.productId, item.quantity + 1, item.color)
+                      }
+                      className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-300 text-xs text-slate-700 hover:bg-slate-50"
                     >
                       +
                     </button>
-                  </div>
 
-                  {/* Satır toplamı + remove */}
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="text-sm font-semibold text-slate-900">
-                      {(item.price * item.quantity).toFixed(1)} ₺
-                    </span>
                     <button
                       type="button"
-                      onClick={() => removeFromCart(item.productId)}
-                      className="text-[11px] text-slate-400 hover:text-red-500"
+                      onClick={() => removeFromCart(item.productId, item.color)}
+                      className="ml-2 text-[11px] text-red-500 hover:underline"
                     >
                       Remove
                     </button>
                   </div>
                 </div>
               ))}
-
-              <div className="pt-2 text-right">
-                <button
-                  type="button"
-                  onClick={clearCart}
-                  className="text-xs text-slate-500 hover:text-red-500"
-                >
-                  Clear cart
-                </button>
-              </div>
             </div>
+
           )}
         </div>
 

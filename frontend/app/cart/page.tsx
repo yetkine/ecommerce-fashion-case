@@ -5,7 +5,6 @@ import { useCart } from "@/app/CartContext";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../AuthContext";
 
-
 const API_BASE = "http://localhost:5000";
 
 export default function CartPage() {
@@ -19,6 +18,7 @@ export default function CartPage() {
   } = useCart();
 
   const router = useRouter();
+  const { user, token } = useAuth();
 
   // checkout form state
   const [name, setName] = useState("");
@@ -29,8 +29,6 @@ export default function CartPage() {
   const [cardNumber, setCardNumber] = useState("");
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState("");
-  const { user, token } = useAuth();
-
 
   // tax & shipping
   const tax = totalPrice * 0.18; // %18 KDV
@@ -54,32 +52,32 @@ export default function CartPage() {
     setProcessing(true);
 
     try {
-     const res = await fetch(`${API_BASE}/api/orders`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({
-        items: items.map((it) => ({
-          productId: it.productId,
-          name: it.name,
-          price: it.price,
-          quantity: it.quantity,
-        })),
-        subtotal: totalPrice,
-        tax,
-        shipping,
-        total: grandTotal,
-        shippingName: name,
-        shippingAddress: address,
-        shippingCity: city,
-        shippingZip: zip,
-        paymentName: cardName,
-        cardNumber,
-  }),
-});
-
+      const res = await fetch(`${API_BASE}/api/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          items: items.map((it) => ({
+            productId: it.productId,
+            name: it.name,
+            price: it.price,
+            quantity: it.quantity,
+            color: it.color, // seçilen rengi de gönder
+          })),
+          subtotal: totalPrice,
+          tax,
+          shipping,
+          total: grandTotal,
+          shippingName: name,
+          shippingAddress: address,
+          shippingCity: city,
+          shippingZip: zip,
+          paymentName: cardName,
+          cardNumber,
+        }),
+      });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -131,8 +129,15 @@ export default function CartPage() {
                     key={item.productId}
                     className="border-b border-slate-100"
                   >
-                    <td className="py-2 pr-4 text-slate-800">
-                      {item.name}
+                    <td className="py-2 pr-4">
+                      <div className="text-slate-800 font-medium">
+                        {item.name}
+                      </div>
+                      {item.color && (
+                        <div className="mt-0.5 text-xs text-black text-slate-500">
+                          Color: {item.color}
+                        </div>
+                      )}
                     </td>
                     <td className="py-2">
                       <div className="flex items-center gap-2">

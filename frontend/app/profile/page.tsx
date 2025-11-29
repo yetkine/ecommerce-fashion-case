@@ -17,7 +17,7 @@ type Order = {
   _id: string;
   orderCode: string;
   total: number;
-  status: "created" | "processing" | "shipped" | "cancelled" | string;
+  status: "processing" | "shipped" | "delivered" | "cancelled" | string;
   createdAt: string;
   items: OrderItem[];
 };
@@ -32,6 +32,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!token) return;
+
     const fetchOrders = async () => {
       setOrdersLoading(true);
       setOrdersError("");
@@ -100,11 +101,14 @@ export default function ProfilePage() {
     let text = status;
     let cls = "bg-slate-100 text-slate-700";
 
-    if (status === "created" || status === "processing") {
+    if (status === "processing") {
       text = "Processing";
       cls = "bg-amber-50 text-amber-700";
     } else if (status === "shipped") {
       text = "Shipped";
+      cls = "bg-blue-50 text-blue-700";
+    } else if (status === "delivered") {
+      text = "Delivered";
       cls = "bg-emerald-50 text-emerald-700";
     } else if (status === "cancelled") {
       text = "Cancelled";
@@ -147,6 +151,12 @@ export default function ProfilePage() {
               Sign up
             </button>
           </div>
+          <button
+            onClick={() => router.push("/")}
+            className="mt-2 text-xs text-slate-500 hover:underline"
+          >
+            ← Back to homepage
+          </button>
         </div>
       </main>
     );
@@ -154,6 +164,16 @@ export default function ProfilePage() {
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8">
+      {/* üstte ana sayfaya dönüş */}
+      <div className="mx-auto mb-4 flex max-w-5xl items-center justify-between">
+        <button
+          onClick={() => router.push("/")}
+          className="text-xs text-slate-600 hover:underline"
+        >
+          ← Back to homepage
+        </button>
+      </div>
+
       <div className="mx-auto flex max-w-5xl flex-col gap-6 md:flex-row">
         {/* LEFT: User info */}
         <div className="w-full md:w-1/3 rounded-2xl bg-white p-6 shadow-sm space-y-4">
@@ -161,9 +181,7 @@ export default function ProfilePage() {
             <h1 className="text-lg font-semibold text-slate-900">
               Profile
             </h1>
-            <p className="mt-1 text-xs text-slate-500">
-              Signed in as
-            </p>
+            <p className="mt-1 text-xs text-slate-500">Signed in as</p>
           </div>
 
           <div className="space-y-1 text-sm">
@@ -235,7 +253,7 @@ export default function ProfilePage() {
                     ))}
                   </ul>
 
-                  {["created", "processing"].includes(order.status) && (
+                  {order.status === "processing" && (
                     <div className="pt-2 border-t border-slate-100 flex justify-end">
                       <button
                         onClick={() => handleCancelOrder(order._id)}

@@ -21,6 +21,20 @@ type Product = {
   };
 };
 
+// İSİM → HEX MAP
+const COLOR_HEX_MAP: Record<string, string> = {
+  Yellow: "#facc15",
+  DarkBlue: "#0f172a",
+  Gold: "#eab308",
+  Nude: "#f5d0c5",
+  Black: "#020617",
+  White: "#f9fafb",
+  Brown: "#92400e",
+  Lilac: "#c4b5fd",
+  Blue: "#3b82f6",
+  "Light Blue": "#60a5fa",
+};
+
 const FALLBACK_COLORS = ["#111827", "#9CA3AF", "#F97316", "#22C55E"];
 
 export function ProductCard({ product }: { product: Product }) {
@@ -36,7 +50,6 @@ export function ProductCard({ product }: { product: Product }) {
     colors[selectedIndex] || (colors[0] ?? undefined);
 
   const handleColorClick = (e: MouseEvent, idx: number) => {
-    // Link'e tıklamış gibi sayfa değiştirmesin
     e.preventDefault();
     e.stopPropagation();
     setSelectedIndex(idx);
@@ -44,9 +57,14 @@ export function ProductCard({ product }: { product: Product }) {
 
   const resolveDotColor = (c: string, idx: number) => {
     const trimmed = c.trim();
-    // "#ffffff" gibi hex ise direkt kullan
+
+    // önce isim → hex map'i dene
+    if (COLOR_HEX_MAP[trimmed]) return COLOR_HEX_MAP[trimmed];
+
+    // "#ffffff" gibi direkt hex geldiyse
     if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(trimmed)) return trimmed;
-    // değilse fallback palette
+
+    // yoksa fallback palette
     return FALLBACK_COLORS[idx % FALLBACK_COLORS.length];
   };
 
@@ -55,7 +73,6 @@ export function ProductCard({ product }: { product: Product }) {
       href={`/products/${product._id}`}
       className="flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
     >
-      {/* Görsel */}
       <div className="relative w-full overflow-hidden bg-slate-100 pb-[130%]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -79,7 +96,6 @@ export function ProductCard({ product }: { product: Product }) {
           {product.description}
         </p>
 
-        {/* Renk seçenekleri */}
         {colors.length > 0 && (
           <div className="mt-1 flex flex-wrap items-center gap-2">
             {colors.map((c, idx) => (
