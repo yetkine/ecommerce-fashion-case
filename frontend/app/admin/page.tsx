@@ -275,18 +275,23 @@ export default function AdminPage() {
               Key statistics, all orders and popular products.
             </p>
           </div>
-                <div className="flex items-center gap-3">
-                <Link
-                href="/admin/products"
-                className="rounded-full border border-slate-200 px-4 py-2 text-xs text-black font-medium text-slate-700 hover:bg-slate-50"
-                >
-                Product Management
-                </Link>
-               
-            </div>
 
-          <CartBar />
+          <div className="flex items-center gap-3">
+            <a
+              href="/admin/products"
+              className="rounded-full border border-slate-200 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Product management
+            </a>
+            <a
+              href="/admin/customers"
+              className="rounded-full border border-slate-200 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Customers
+            </a>
+          </div>
         </header>
+
 
         {/* TOP STATS */}
         <section className="mb-6 grid gap-4 md:grid-cols-4">

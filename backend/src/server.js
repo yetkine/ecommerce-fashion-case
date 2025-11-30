@@ -6,7 +6,7 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const productRoutes = require("./routes/productRoutes");
 const authRoutes = require("./routes/authRoutes");
 const orderRoutes = require("./routes/orderRoutes");
-
+const adminCustomerRoutes = require("./routes/adminCustomerRoutes");
 
 
 
@@ -24,6 +24,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/admin/customers", adminCustomerRoutes);
 
 
 
