@@ -16,6 +16,7 @@ node_modules/
 /backend/logs/
 /backend/*.log
 /backend/.env*
+!/backend/.env.example
 
 # OS
 .DS_Store
