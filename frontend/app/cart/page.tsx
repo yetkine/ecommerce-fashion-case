@@ -5,7 +5,8 @@ import { useCart } from "@/app/CartContext";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../AuthContext";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = "https://ecommerce-fashion-case.onrender.com";
+
 
 export default function CartPage() {
   const {

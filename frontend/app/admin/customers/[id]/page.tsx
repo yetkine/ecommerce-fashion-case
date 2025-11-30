@@ -5,7 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../AuthContext";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = "https://ecommerce-fashion-case.onrender.com";
+
 
 type OrderItem = {
   productId?: string;

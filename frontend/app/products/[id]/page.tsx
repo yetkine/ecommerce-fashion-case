@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useCart } from "@/app/CartContext";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = "https://ecommerce-fashion-case.onrender.com";
+
 
 type Product = {
   _id: string;

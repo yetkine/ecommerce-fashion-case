@@ -5,7 +5,8 @@ import Link from "next/link";
 import { CartBar } from "../CartBar";
 import { useAuth } from "../AuthContext";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = "https://ecommerce-fashion-case.onrender.com";
+
 
 type Category = {
   _id: string;
