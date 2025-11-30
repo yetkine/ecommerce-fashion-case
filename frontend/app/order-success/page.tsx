@@ -1,15 +1,22 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-function OrderSuccessContent() {
+export default function OrderSuccessPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const orderCode = searchParams.get("code");
 
+  const [orderCode, setOrderCode] = useState<string | null>(null);
   // 1: preparing, 2: handing over, 3: shipped
   const [step, setStep] = useState(1);
+
+  // URL'den ?code=... parametresini oku
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      setOrderCode(params.get("code"));
+    }
+  }, []);
 
   useEffect(() => {
     const t1 = setTimeout(() => setStep(2), 1000);
@@ -72,13 +79,5 @@ function OrderSuccessContent() {
         </div>
       </div>
     </main>
-  );
-}
-
-export default function OrderSuccessPage() {
-  return (
-    <Suspense fallback={<div className="p-6 text-center">Loading order status...</div>}>
-      <OrderSuccessContent />
-    </Suspense>
   );
 }
