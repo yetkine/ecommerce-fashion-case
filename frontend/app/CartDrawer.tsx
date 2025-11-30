@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useCart } from "./CartContext";
 import { useAuth } from "./AuthContext";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = "https://ecommerce-fashion-case.onrender.com";
+
 
 type CartDrawerProps = {
   open: boolean;
